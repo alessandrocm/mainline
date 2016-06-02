@@ -1,0 +1,33 @@
+{
+  "name": "mainline",
+  "version": "1.0.0",
+  "description": "Yet another javascript DI framework.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alessandrocm/mainline.git"
+  },
+  "keywords": [
+    "DI",
+    "IoC",
+    "dependency",
+    "injection"
+  ],
+  "author": "Alessandro Catter-Martinez <alessandro.cattermartinez@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alessandrocm/mainline/issues"
+  },
+  "homepage": "https://github.com/alessandrocm/mainline#readme",
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-register": "^6.9.0",
+    "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "mocha": "^2.5.3"
+  }
+}
