@@ -3,6 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.injectable = injectable;
 exports.default = inject;
 
@@ -22,9 +25,12 @@ var injectTypes = exports.injectTypes = {
   VALUE: VALUE
 };
 
-function injectable(alias) {
-  var type = arguments.length <= 1 || arguments[1] === undefined ? injectTypes.CLASS : arguments[1];
+function injectable() {
+  var alias = void 0,
+      type = void 0;
 
+  alias = typeof (arguments.length <= 0 ? undefined : arguments[0]) === 'string' ? arguments.length <= 0 ? undefined : arguments[0] : undefined;
+  type = _typeof(arguments.length <= 0 ? undefined : arguments[0]) === 'symbol' ? arguments.length <= 0 ? undefined : arguments[0] : (arguments.length <= 1 ? undefined : arguments[1]) || CLASS;
 
   return function decorator(target) {
     dependencies[alias || target.name] = {

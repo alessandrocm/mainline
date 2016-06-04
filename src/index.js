@@ -12,7 +12,11 @@ export const injectTypes = {
   VALUE
 };
 
-export function injectable(alias, type = injectTypes.CLASS) {
+export function injectable(...args) {
+  let alias, type;
+
+  alias = (typeof args[0] === 'string') ? args[0] : undefined;
+  type = (typeof args[0] === 'symbol') ? args[0] : (args[1] || CLASS);
 
   return function decorator(target){
     dependencies[alias || target.name] = {
