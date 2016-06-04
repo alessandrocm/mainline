@@ -5,6 +5,8 @@ const SINGLETON = Symbol();
 const FUNC = Symbol();
 const VALUE = Symbol();
 
+const meta = Symbol.for('__mainline__');
+
 export const injectTypes = {
   CLASS,
   SINGLETON,
@@ -12,15 +14,23 @@ export const injectTypes = {
   VALUE
 };
 
+function decorate(target, originalName) {
+  target[meta] = target[meta] || {
+    name: originalName
+  };
+}
+
 export function injectable(...args) {
-  let alias, type;
+  let alias, type, key;
 
   alias = (typeof args[0] === 'string') ? args[0] : undefined;
   type = (typeof args[0] === 'symbol') ? args[0] : (args[1] || CLASS);
 
   return function decorator(target){
-    dependencies[alias || target.name] = {
-      name: alias || target.name,
+    key = alias || (target[meta] && target[meta].name) || target.name;
+
+    dependencies[key] = {
+      name: key,
       type,
       target
     };
@@ -63,6 +73,7 @@ export default function inject(needs, type = injectTypes.CLASS) {
   }
 
   return function decorator(target) {
+    let proxy = null;
 
     function proxyFunction(...overrides) {
 
@@ -82,9 +93,13 @@ export default function inject(needs, type = injectTypes.CLASS) {
 
     if (type === injectTypes.CLASS){
       ProxyClass.prototype = Object.create(target.prototype);
-      return ProxyClass;
+      proxy = ProxyClass;
+    }
+    else {
+      proxy = proxyFunction;
     }
 
-    return proxyFunction;
+    decorate(proxy, (target[meta] && target[meta].name) || target.name);
+    return proxy;
   };
 }

@@ -18,6 +18,8 @@ var SINGLETON = Symbol();
 var FUNC = Symbol();
 var VALUE = Symbol();
 
+var meta = Symbol.for('__mainline__');
+
 var injectTypes = exports.injectTypes = {
   CLASS: CLASS,
   SINGLETON: SINGLETON,
@@ -25,16 +27,25 @@ var injectTypes = exports.injectTypes = {
   VALUE: VALUE
 };
 
+function decorate(target, originalName) {
+  target[meta] = target[meta] || {
+    name: originalName
+  };
+}
+
 function injectable() {
   var alias = void 0,
-      type = void 0;
+      type = void 0,
+      key = void 0;
 
   alias = typeof (arguments.length <= 0 ? undefined : arguments[0]) === 'string' ? arguments.length <= 0 ? undefined : arguments[0] : undefined;
   type = _typeof(arguments.length <= 0 ? undefined : arguments[0]) === 'symbol' ? arguments.length <= 0 ? undefined : arguments[0] : (arguments.length <= 1 ? undefined : arguments[1]) || CLASS;
 
   return function decorator(target) {
-    dependencies[alias || target.name] = {
-      name: alias || target.name,
+    key = alias || target[meta] && target[meta].name || target.name;
+
+    dependencies[key] = {
+      name: key,
       type: type,
       target: target
     };
@@ -79,6 +90,7 @@ function inject(needs) {
   }
 
   return function decorator(target) {
+    var proxy = null;
 
     function proxyFunction() {
 
@@ -108,9 +120,12 @@ function inject(needs) {
 
     if (type === injectTypes.CLASS) {
       ProxyClass.prototype = Object.create(target.prototype);
-      return ProxyClass;
+      proxy = ProxyClass;
+    } else {
+      proxy = proxyFunction;
     }
 
-    return proxyFunction;
+    decorate(proxy, target[meta] && target[meta].name || target.name);
+    return proxy;
   };
 }

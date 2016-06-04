@@ -1,7 +1,7 @@
 import inject, { injectable } from './../../../';
 
 // Injectable must be above inject
-@injectable('Bar') // Alias required because of the multiple decorators
+@injectable()
 @inject(['Foo'])
 export class Bar {
   constructor(foo) {
