@@ -14,10 +14,11 @@ export const injectTypes = {
   VALUE
 };
 
-function decorate(target, originalName) {
-  target[meta] = target[meta] || {
+function decorate(target, originalName, data) {
+  target[meta] = (target[meta] && Object.assign(target[meta], data)) ||
+  Object.assign({
     name: originalName
-  };
+  }, data);
 }
 
 export function injectable(...args) {
@@ -28,7 +29,7 @@ export function injectable(...args) {
 
   return function decorator(target){
     key = alias || (target[meta] && target[meta].name) || target.name;
-
+    decorate(target, target.name, {injectable:true});
     dependencies[key] = {
       name: key,
       type,
@@ -99,7 +100,7 @@ export default function inject(needs, type = injectTypes.CLASS) {
       proxy = proxyFunction;
     }
 
-    decorate(proxy, (target[meta] && target[meta].name) || target.name);
+    decorate(proxy, (target[meta] && target[meta].name) || target.name, {injectee:true});
     return proxy;
   };
 }

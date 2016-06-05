@@ -27,10 +27,10 @@ var injectTypes = exports.injectTypes = {
   VALUE: VALUE
 };
 
-function decorate(target, originalName) {
-  target[meta] = target[meta] || {
+function decorate(target, originalName, data) {
+  target[meta] = target[meta] && Object.assign(target[meta], data) || Object.assign({
     name: originalName
-  };
+  }, data);
 }
 
 function injectable() {
@@ -43,7 +43,7 @@ function injectable() {
 
   return function decorator(target) {
     key = alias || target[meta] && target[meta].name || target.name;
-
+    decorate(target, target.name, { injectable: true });
     dependencies[key] = {
       name: key,
       type: type,
@@ -125,7 +125,7 @@ function inject(needs) {
       proxy = proxyFunction;
     }
 
-    decorate(proxy, target[meta] && target[meta].name || target.name);
+    decorate(proxy, target[meta] && target[meta].name || target.name, { injectee: true });
     return proxy;
   };
 }
