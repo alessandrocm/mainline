@@ -27,10 +27,17 @@ var injectTypes = exports.injectTypes = {
   VALUE: VALUE
 };
 
+function isPrimitive(target) {
+  var type = typeof target === 'undefined' ? 'undefined' : _typeof(target);
+  return target === null || target === undefined || type !== 'object' && type !== 'function';
+}
+
 function decorate(target, originalName, data) {
-  target[meta] = target[meta] && Object.assign(target[meta], data) || Object.assign({
-    name: originalName
-  }, data);
+  if (!isPrimitive(target)) {
+    target[meta] = target[meta] && Object.assign(target[meta], data) || Object.assign({
+      name: originalName
+    }, data);
+  }
 }
 
 function injectable() {

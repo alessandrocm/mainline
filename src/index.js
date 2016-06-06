@@ -14,11 +14,18 @@ export const injectTypes = {
   VALUE
 };
 
+function isPrimitive(target) {
+  const type = typeof target;
+  return target === null || target === undefined || (type !== 'object' && type !== 'function');
+}
+
 function decorate(target, originalName, data) {
-  target[meta] = (target[meta] && Object.assign(target[meta], data)) ||
-  Object.assign({
-    name: originalName
-  }, data);
+  if (!isPrimitive(target)) {
+    target[meta] = (target[meta] && Object.assign(target[meta], data)) ||
+    Object.assign({
+      name: originalName
+    }, data);
+  }
 }
 
 export function injectable(...args) {
