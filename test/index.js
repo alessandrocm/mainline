@@ -62,7 +62,7 @@ describe('#inject', () => {
     @inject(['Expected', 'expecting', 'expect'])
     class Actual {
       constructor(expect1, expect2, expect3) {
-        this.expecting = { expect1, expect2, expect3};
+        this.expecting = { expect1, expect2, expect3 };
       }
     }
 
@@ -92,6 +92,44 @@ describe('#inject', () => {
     })();
 
     assert.deepEqual(singleton1, singleton2);
+    done();
+  });
+
+  it('decorator should inject into function', done => {
+    @injectable()
+    class Dependency {}
+
+    let actual1 = null;
+    const injectee = inject(['Dependency'], injectTypes.FUNC)(
+      function(param) {
+        actual1 = param;
+      }
+    );
+
+    injectee();
+    assert.instanceOf(actual1, Dependency);
+    injectee({});
+    assert.notInstanceOf(actual1, Dependency);
+    done();
+  });
+
+  it('decorator should allow for parameter overrides', done => {
+    @injectable()
+    class InjectableClass {
+      constructor(name = 'Jim') { this.name = name; }
+    }
+
+    @inject(['InjectableClass','InjectableClass'])
+    class Injectee {
+      constructor(param1, param2) { this.param1 = param1; this.param2 = param2; }
+    }
+
+    const override = new InjectableClass('Tim');
+    const instance1 = new Injectee();
+    const instance2 = new Injectee(override);
+
+    assert.notEqual(instance1.param1.name, instance2.param1.name);
+    assert.equal(instance1.param2.name, instance2.param2.name);
     done();
   });
 });
