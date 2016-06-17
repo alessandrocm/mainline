@@ -79,6 +79,25 @@ function inject(needs) {
     });
   }
 
+  function getHandlers() {
+    return {
+      construct: function construct(target, overrides, newTarget) {
+
+        var injectables = factory();
+        var params = mergeParameters(overrides, injectables);
+
+        return new (Function.prototype.bind.apply(target, [null].concat(_toConsumableArray(params))))();
+      },
+      apply: function apply(target, thisArg, overrides) {
+
+        var injectables = factory();
+        var params = mergeParameters(overrides, injectables);
+
+        return target.apply(undefined, _toConsumableArray(params));
+      }
+    };
+  }
+
   function mergeParameters(overrides, injectables) {
 
     var params = [];
@@ -97,40 +116,8 @@ function inject(needs) {
   }
 
   return function decorator(target) {
-    var proxy = null;
-
-    function proxyFunction() {
-
-      var injectables = factory();
-
-      for (var _len = arguments.length, overrides = Array(_len), _key = 0; _key < _len; _key++) {
-        overrides[_key] = arguments[_key];
-      }
-
-      var params = mergeParameters(overrides, injectables);
-
-      return target.call.apply(target, [target].concat(_toConsumableArray(params)));
-    }
-
-    function ProxyClass() {
-
-      var injectables = factory();
-
-      for (var _len2 = arguments.length, overrides = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        overrides[_key2] = arguments[_key2];
-      }
-
-      var params = mergeParameters(overrides, injectables);
-
-      target.call.apply(target, [this].concat(_toConsumableArray(params)));
-    }
-
-    if (type === injectTypes.CLASS) {
-      ProxyClass.prototype = Object.create(target.prototype);
-      proxy = ProxyClass;
-    } else {
-      proxy = proxyFunction;
-    }
+    var handlers = getHandlers();
+    var proxy = new Proxy(target, handlers);
 
     decorate(proxy, target[meta] && target[meta].name || target.name, { injectee: true });
     return proxy;

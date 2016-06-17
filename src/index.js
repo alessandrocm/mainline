@@ -63,6 +63,25 @@ export default function inject(needs, type = injectTypes.CLASS) {
     });
   }
 
+  function getHandlers(){
+    return {
+      construct: function(target, overrides) {
+
+        const injectables = factory();
+        const params = mergeParameters(overrides, injectables);
+
+        return new target(...params);
+      },
+      apply : function(target, thisArg, overrides) {
+
+        const injectables = factory();
+        const params = mergeParameters(overrides, injectables);
+
+        return target(...params);
+      }
+    };
+  }
+
   function mergeParameters(overrides, injectables) {
 
     const params = [];
@@ -81,31 +100,8 @@ export default function inject(needs, type = injectTypes.CLASS) {
   }
 
   return function decorator(target) {
-    let proxy = null;
-
-    function proxyFunction(...overrides) {
-
-      const injectables = factory();
-      const params = mergeParameters(overrides, injectables);
-
-      return target.call(target,...params);
-    }
-
-    function ProxyClass(...overrides) {
-
-      const injectables = factory();
-      const params = mergeParameters(overrides, injectables);
-
-      target.call(this,...params);
-    }
-
-    if (type === injectTypes.CLASS){
-      ProxyClass.prototype = Object.create(target.prototype);
-      proxy = ProxyClass;
-    }
-    else {
-      proxy = proxyFunction;
-    }
+    const handlers = getHandlers();
+    const proxy = new Proxy(target, handlers);
 
     decorate(proxy, (target[meta] && target[meta].name) || target.name, {injectee:true});
     return proxy;
