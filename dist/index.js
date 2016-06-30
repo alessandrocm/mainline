@@ -62,17 +62,23 @@ function injectable() {
 }
 
 function inject(needs) {
-  var type = arguments.length <= 1 || arguments[1] === undefined ? injectTypes.CLASS : arguments[1];
-
 
   function factory() {
     return needs.map(function (needed) {
-      var need = dependencies[needed];
+      var isObj = (typeof needed === 'undefined' ? 'undefined' : _typeof(needed)) === 'object';
+      var key = isObj ? needed.name : needed;
+      var params = isObj ? needed.using : undefined;
+
+      var need = dependencies[key];
       if (need) {
         if (need.type === CLASS) {
-          return new need.target();
+          return params ? new (Function.prototype.bind.apply(need.target, [null].concat(_toConsumableArray(params))))() : new need.target();
         } else if (need.type === SINGLETON) {
-          return need.instance = need.instance ? need.instance : new need.target();
+          return need.instance = need.instance ? need.instance : params ? new (Function.prototype.bind.apply(need.target, [null].concat(_toConsumableArray(params))))() : new need.target();
+        } else if (need.type === FUNC) {
+          var _need$target;
+
+          return params ? (_need$target = need.target).bind.apply(_need$target, [undefined].concat(_toConsumableArray(params))) : need.target;
         }
         return need.target;
       }
@@ -81,7 +87,7 @@ function inject(needs) {
 
   function getHandlers() {
     return {
-      construct: function construct(target, overrides, newTarget) {
+      construct: function construct(target, overrides) {
 
         var injectables = factory();
         var params = mergeParameters(overrides, injectables);

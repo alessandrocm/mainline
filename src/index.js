@@ -47,16 +47,25 @@ export function injectable(...args) {
   };
 }
 
-export default function inject(needs, type = injectTypes.CLASS) {
+export default function inject(needs) {
 
   function factory() {
     return needs.map(needed => {
-      let need = dependencies[needed];
+      const isObj = (typeof needed === 'object');
+      const key = isObj ? needed.name : needed;
+      const params = isObj ? needed.using : undefined;
+
+      let need = dependencies[key];
       if (need) {
         if(need.type === CLASS) {
-          return new need.target();
+          return (params) ? new need.target(...params) : new need.target();
         } else if (need.type === SINGLETON) {
-          return need.instance = need.instance ? need.instance : new need.target();
+          return need.instance = need.instance ? need.instance
+                                               : (params ? new need.target(...params)
+                                               : new need.target());
+        }
+        else if (need.type === FUNC) {
+          return (params) ? need.target.bind(undefined, ...params) : need.target;
         }
         return need.target;
       }

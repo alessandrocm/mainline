@@ -132,4 +132,22 @@ describe('#inject', () => {
     assert.equal(instance1.param2.name, instance2.param2.name);
     done();
   });
+
+  it('should allow for specifying parameters for dependencies', done => {
+    @injectable()
+    class InjectableThing {
+      constructor(param) { this.value = param; }
+    }
+
+    @inject([{name:'InjectableThing', using:[true]}])
+    class TargetClass {
+      constructor(thing) { this.dep = thing; }
+    }
+
+    const instance = new TargetClass();
+
+    assert.instanceOf(instance.dep, InjectableThing);
+    assert.isTrue(instance.dep.value);
+    done();
+  });
 });
