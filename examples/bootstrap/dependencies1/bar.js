@@ -1,4 +1,4 @@
-import inject, { injectable } from './../../../';
+import {inject, injectable } from './../../../';
 
 // Injectable must be above inject
 @injectable()

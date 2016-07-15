@@ -47,65 +47,68 @@ export function injectable(...args) {
   };
 }
 
-export default function inject(needs) {
+function resolve(need, params) {
+  if(need.type === CLASS) {
+    return (params) ? new need.target(...params) : new need.target();
+  } else if (need.type === SINGLETON) {
+    return need.instance = need.instance || (params ? new need.target(...params)
+                                                    : new need.target());
+  }
+  else if (need.type === FUNC) {
+    return (params) ? need.target.bind(undefined, ...params) : need.target;
+  }
+  return need.target;
+}
 
-  function factory() {
-    return needs.map(needed => {
-      const isObj = (typeof needed === 'object');
-      const key = isObj ? needed.name : needed;
-      const params = isObj ? needed.using : undefined;
+function factory(needs) {
+  return needs.map(needed => {
+    const isObj = (typeof needed === 'object');
+    const key = isObj ? needed.name : needed;
+    const params = isObj ? needed.using : undefined;
 
-      let need = dependencies[key];
-      if (need) {
-        if(need.type === CLASS) {
-          return (params) ? new need.target(...params) : new need.target();
-        } else if (need.type === SINGLETON) {
-          return need.instance = need.instance ? need.instance
-                                               : (params ? new need.target(...params)
-                                               : new need.target());
-        }
-        else if (need.type === FUNC) {
-          return (params) ? need.target.bind(undefined, ...params) : need.target;
-        }
-        return need.target;
-      }
+    let need = dependencies[key];
+    if (need) {
+      return resolve(need, params);
+    }
+  });
+}
+
+function mergeParameters(overrides, injectables) {
+
+  const params = [];
+  const diff = injectables.length - overrides.length;
+  if (overrides.length) {
+    overrides.forEach((value, index) => {
+      params.push((typeof value !== 'undefined') ? value : injectables[index]);
     });
   }
+
+  if (diff > 0) {
+    params.push(...injectables.slice(overrides.length));
+  }
+
+  return params;
+}
+
+export function inject(needs) {
 
   function getHandlers(){
     return {
       construct: function(target, overrides) {
 
-        const injectables = factory();
+        const injectables = factory(needs);
         const params = mergeParameters(overrides, injectables);
 
         return new target(...params);
       },
       apply : function(target, thisArg, overrides) {
 
-        const injectables = factory();
+        const injectables = factory(needs);
         const params = mergeParameters(overrides, injectables);
 
         return target(...params);
       }
     };
-  }
-
-  function mergeParameters(overrides, injectables) {
-
-    const params = [];
-    const diff = injectables.length - overrides.length;
-    if (overrides.length) {
-      overrides.forEach((value, index) => {
-        params.push((typeof value !== 'undefined') ? value : injectables[index]);
-      });
-    }
-
-    if (diff > 0) {
-      params.push(...injectables.slice(overrides.length));
-    }
-
-    return params;
   }
 
   return function decorator(target) {
@@ -115,4 +118,45 @@ export default function inject(needs) {
     decorate(proxy, (target[meta] && target[meta].name) || target.name, {injectee:true});
     return proxy;
   };
+}
+
+class Resolver {
+  constructor(need) {
+    this._need = need;
+    this._overrides = null;
+  }
+
+  withParams(...params) {
+    this._overrides = params;
+    return this;
+  }
+
+  get item() {
+    return (this._need) ? resolve(this._need, this._overrides) : undefined;
+  }
+}
+
+export default class Mainline {
+
+  static register(target,...args) {
+    injectable(...args)(target);
+  }
+
+  static resolve(...needs) {
+    const resolutions = needs.reduce((accumulator, current) => {
+      if (dependencies[current]) {
+        accumulator[current] = dependencies[current];
+      }
+      return accumulator;
+    }, {});
+    return new Mainline(resolutions);
+  }
+
+  constructor(resolutions) {
+    this._resolutions = resolutions;
+  }
+
+  get(name) {
+    return new Resolver(this._resolutions[name]);
+  }
 }

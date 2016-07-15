@@ -1,4 +1,4 @@
-import inject, { injectTypes } from './../../../';
+import { inject, injectTypes } from './../../../';
 
 function bazFunc(foo, bar, moo) {
   console.log('foo: ', JSON.stringify(foo));

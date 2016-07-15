@@ -1,7 +1,7 @@
 'use strict';
 
 require('./foo'); // Loads injectables
-var inject = require('../../').default;
+var inject = require('../../').inject;
 
 function baz(foo, bar) {
   foo();
