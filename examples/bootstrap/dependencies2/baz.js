@@ -1,4 +1,4 @@
-import { inject, injectTypes } from './../../../';
+import Mainline, { injectTypes } from './../../../';
 
 function bazFunc(foo, bar, moo) {
   console.log('foo: ', JSON.stringify(foo));
@@ -7,4 +7,4 @@ function bazFunc(foo, bar, moo) {
 }
 
 // Exports function that needs injectables
-export const baz = inject(['Foo', 'Bar', 'Moo'])(bazFunc, injectTypes.FUNC);
+export const baz = Mainline.inject(bazFunc, ['Foo', 'Bar', 'Moo'], injectTypes.FUNC);

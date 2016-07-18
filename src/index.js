@@ -138,8 +138,29 @@ class Resolver {
 
 export default class Mainline {
 
-  static register(target,...args) {
-    injectable(...args)(target);
+  static register(target, options = {}) {
+    const {
+      alias,
+      type
+    } = options;
+    return injectable(alias, type)(target);
+  }
+
+  static registerFunc(target, alias) {
+    return Mainline.register(target, {alias, type: injectTypes.FUNC});
+  }
+
+  static registerVariable(target, alias) {
+    if (!alias) { throw new Error('Alias is required for registering variable.'); }
+    return Mainline.register(target, { alias, type: injectTypes.VALUE });
+  }
+
+  static registerSingleton(target, alias) {
+    return Mainline.register(target, { alias, type: injectTypes.SINGLETON });
+  }
+
+  static inject(target, needs) {
+    return inject(needs)(target);
   }
 
   static resolve(...needs) {

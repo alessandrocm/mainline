@@ -9,7 +9,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.injectable = injectable;
-exports.inject = inject;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -108,7 +107,7 @@ function mergeParameters(overrides, injectables) {
   return params;
 }
 
-function inject(needs) {
+function _inject(needs) {
 
   function getHandlers() {
     return {
@@ -137,6 +136,8 @@ function inject(needs) {
     return proxy;
   };
 }
+
+exports.inject = _inject;
 
 var Resolver = function () {
   function Resolver(need) {
@@ -170,17 +171,40 @@ var Mainline = function () {
   _createClass(Mainline, null, [{
     key: 'register',
     value: function register(target) {
-      for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        args[_key2 - 1] = arguments[_key2];
-      }
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var alias = options.alias;
+      var type = options.type;
 
-      injectable.apply(undefined, args)(target);
+      return injectable(alias, type)(target);
+    }
+  }, {
+    key: 'registerFunc',
+    value: function registerFunc(target, alias) {
+      return Mainline.register(target, { alias: alias, type: injectTypes.FUNC });
+    }
+  }, {
+    key: 'registerVariable',
+    value: function registerVariable(target, alias) {
+      if (!alias) {
+        throw new Error('Alias is required for registering variable.');
+      }
+      return Mainline.register(target, { alias: alias, type: injectTypes.VALUE });
+    }
+  }, {
+    key: 'registerSingleton',
+    value: function registerSingleton(target, alias) {
+      return Mainline.register(target, { alias: alias, type: injectTypes.SINGLETON });
+    }
+  }, {
+    key: 'inject',
+    value: function inject(target, needs) {
+      return _inject(needs)(target);
     }
   }, {
     key: 'resolve',
     value: function resolve() {
-      for (var _len3 = arguments.length, needs = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        needs[_key3] = arguments[_key3];
+      for (var _len2 = arguments.length, needs = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        needs[_key2] = arguments[_key2];
       }
 
       var resolutions = needs.reduce(function (accumulator, current) {

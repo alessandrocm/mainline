@@ -10,11 +10,11 @@ Compatible with Node v6.2 and up.
 
 ## Usage
 ```js
-import Mainline, {injectable, injectTypes} from 'mainline';
+import Mainline, {inject, injectable} from 'mainline';
 
 const SOME_VALUE = 'path/to/something';
 
-Mainline.register(SOME_VALUE, 'SOME_VALUE', injectTypes.VALUE);
+Mainline.registerVariable(SOME_VALUE, 'SOME_VALUE');
 
 @injectable()
 class DataStore {
@@ -39,18 +39,61 @@ const data = new DataService(); // Mainline automatically provides parameters
 ### Mainline
 
 #### #register
-Class method registers the target and makes it  globally available.
+Registers the target and makes it globally available.
 ```js
-Mainline.register(someFunction, alias, injectTypes.FUNC);
+Mainline.register(someFunction, options);
 ```
 
 _Arguments_
 * ```target``` (Object|Class|Function|Primitive) target to make available throughout the app.
-* ```alias``` *optional* (String) Name by which to resolve it by. If none is provided the function or class name is used.
-* ```type``` *optional* (injectTypes) You can specify if it is a CLASS (Default) | SINGLETON | FUNC | VALUE.
+* ```options``` (Object)
+  * ```alias``` *optional* (String) Name by which to resolve it by. If none is provided the function or class name is used.
+  * ```type``` *optional* (injectTypes) You can specify if it is a CLASS (Default) | SINGLETON | FUNC | VALUE.
+
+_Returns_
+* ```target``` (Object|Class|Function|Primitive) The target.
+
+#### #registerFunc
+Registers a target function and makes it globally available.
+```js
+Mainline.registerFunc(target, alias);
+```
+
+_Arguments_
+* ```target``` (Function) Function to make available throughout the app.
+* ```alias``` *optional* (String) Alias for the function. If not provided the function name is used.
+
+_Returns_
+* ```target``` (Object|Class|Function|Primitive) The target.
+
+#### #registerVariable
+Registers a target variable and makes it globally available.
+```js
+Mainline.registerVariable(target, alias);
+```
+
+_Arguments_
+* ```target``` (Object|Primitive) Instance to make available throughout the app.
+* ```alias``` *required* (String) Alias for the variable.
+
+_Returns_
+* ```target``` (Object|Primitive) The target.
+
+#### #registerSingleton
+Registers a target class/constructor and makes it globally available.
+```js
+Mainline.registerSingleton(target, alias);
+```
+
+_Arguments_
+* ```target``` (Class|constructor) class to make available throughout the app. After it is instantiated the first time the same instance is reused.
+* ```alias``` *optional* (String) Alias for the class. If not provided the class/constructor name is used.
+
+_Returns_
+* ```target``` (Object) The target.
 
 #### #resolve
-Class method returns a resolver with which to generate the required objects or values.
+Method returns a resolver with which to generate the required objects or values.
 ```js
 Mainline.resolve(targetName1, targetName2, ...)
 ```
@@ -59,10 +102,14 @@ _Arguments_
 * ```targetName``` (String) Names of objects to resolve.
 
 _Returns_
-* ```Mainline``` (Object) This an object that can be used to retrieve or create dependencies by their name or alias.
+* ```Mainline``` (Object) This is an object that can be used to retrieve or create dependencies by their name or alias.
 
 #### #get
 Instance method that will give access to those objects specified in ```resolve``` method.
+```js
+const resolver = Mainline.resolve('Item1', 'Item2');
+const item1 = resolver.get('Item1').item;
+```
 
 _Arguments_
 * ```name``` (String) Name or alias of dependency.

@@ -2,6 +2,7 @@
 
 var injectable = require('../../').injectable;
 var injectTypes = require('../../').injectTypes;
+var Mainline = require('../../').default;
 
 function foo() {
   console.log('I am foo.');
@@ -12,5 +13,5 @@ function Bar() {
 }
 
 
-module.exports.foo = injectable(injectTypes.FUNC)(foo);
-module.exports.bar = injectable()(Bar);
+module.exports.foo = Mainline.registerFunc(foo);
+module.exports.bar = Mainline.registerFunc(Bar);

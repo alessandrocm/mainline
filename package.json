@@ -1,6 +1,6 @@
 {
   "name": "mainline",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Yet another javascript DI framework.",
   "main": "./dist/index.js",
   "scripts": {

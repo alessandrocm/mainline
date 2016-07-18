@@ -5,10 +5,18 @@ describe('Mainline', () => {
   describe('#register', () => {
     it('should register the specified object', done => {
       function expected () { return 'hello'; }
-      Mainline.register(expected, injectTypes.FUNC);
+      Mainline.registerFunc(expected);
       const resolver = Mainline.resolve('expected');
       const actual = resolver.get('expected').item;
       assert.equal(expected, actual);
+      done();
+    });
+  });
+
+  describe('#registerVariable', () => {
+    it('should throw an error if no alias is provided ', done => {
+      const expected = 'expected';
+      assert.throws(() => Mainline.registerVariable(expected));
       done();
     });
   });
@@ -18,9 +26,9 @@ describe('Mainline', () => {
       function expectedA () { return 'A'; }
       class ExpectedB { }
       const expectedC = false;
-      Mainline.register(expectedA, injectTypes.FUNC);
+      Mainline.registerFunc(expectedA);
       Mainline.register(ExpectedB);
-      Mainline.register(expectedC, 'expectedC', injectTypes.VALUE);
+      Mainline.registerVariable(expectedC, 'expectedC');
       const resolver = Mainline.resolve('expectedA', 'ExpectedB', 'expectedC');
       const actualA = resolver.get('expectedA').item;
       const actualB = resolver.get('ExpectedB').item;
@@ -34,7 +42,7 @@ describe('Mainline', () => {
     it('should resolve items with specified params', done => {
       function overrideA (val) { return val; }
       class OverrideB { constructor(val) { this.val = val; } }
-      Mainline.register(overrideA, injectTypes.FUNC);
+      Mainline.registerFunc(overrideA);
       Mainline.register(OverrideB);
       const resolver = Mainline.resolve('overrideA', 'OverrideB');
       const actualA = resolver.get('overrideA').withParams(42).item;
@@ -44,11 +52,44 @@ describe('Mainline', () => {
       done();
     });
 
+    it('should return the same instance for singletons', done => {
+      class Single { constructor(a) { this.val = a; } }
+      Mainline.registerSingleton(Single);
+      const resolver1 = Mainline.resolve('Single');
+      const resolver2 = Mainline.resolve('Single');
+      const instance1 = resolver1.get('Single').withParams(365).item;
+      const instance2 = resolver2.get('Single').item;
+      assert.equal(instance1, instance2);
+      done();
+    });
+
     it('should return undefined if specified target name not found.', done => {
       Mainline.register({name: 'I Exist'}, 'ThingThatDoesExist', injectTypes.VALUE);
       const resolver = Mainline.resolve('ThingThatDoesNotExists');
       const actual = resolver.get('ThingThatDoesNotExists').item;
       assert.isUndefined(actual);
+      done();
+    });
+  });
+  describe('#inject', () => {
+    it('should return a class that will have params injected.', done => {
+      Mainline.registerVariable(123, 'a');
+      Mainline.registerVariable('XYZ', 'b');
+      class SomeClass { constructor(a,b) { this.a = a; this.b = b; }}
+      const Injectable = Mainline.inject(SomeClass, ['a', 'b']);
+      const instance = new Injectable();
+      assert.equal(instance.a, 123);
+      assert.equal(instance.b, 'XYZ');
+      done();
+    });
+    it('should return a functipn that will have params injected.', done => {
+      Mainline.registerVariable(123, 'a');
+      Mainline.registerVariable('XYZ', 'b');
+      function SomeFunc(a,b) { return {a, b}; }
+      const injectable = Mainline.inject(SomeFunc, ['a', 'b']);
+      const actual = injectable();
+      assert.equal(actual.a, 123);
+      assert.equal(actual.b, 'XYZ');
       done();
     });
   });
