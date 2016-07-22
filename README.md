@@ -1,4 +1,4 @@
-# mainline
+# mainline [![Build Status](https://travis-ci.org/alessandrocm/mainline.svg?branch=master)](https://travis-ci.org/alessandrocm/mainline)
 Yet another javascript DI framework
 
 ## Install
